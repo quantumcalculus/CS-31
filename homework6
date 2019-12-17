@@ -1,0 +1,226 @@
+1.
+Fixed version of a program:
+
+int main()
+    {
+        int arr[3] = { 5, 10, 15 };
+        int* ptr = arr;
+
+        *ptr = 10;
+        ptr++;
+        *ptr = 20;
+        ptr++;
+        *ptr = 30;
+     
+
+        while (ptr >= arr ) {
+            cout << *ptr << endl;
+            ptr--; // print values
+        }
+    }
+
+Initial bugs:
+
+Ptr must be incremented as p++ according to the pointer arithmetic: *ptr + 1 will produce a compiler error. Change to ptr++; change the values in the array to 10 20 30 by assigning them using the pointer to the memory in the array; print out values from the end of the array and decrement the pointer consequently, so program does not run into the null byte;
+
+
+b) The right output after fixing the bugs: The maximum is at address 0x7edbb0a3ef58
+It's at position 2
+Its value is 15
+
+void findMax(int arr[], int n, int* &pToMax)
+    {
+        if (n <= 0) 
+            return;      // no items, no maximum!
+    
+        pToMax = arr;
+
+        for (int i = 1; i < n; i++)
+        {
+            if (arr[i] > *pToMax)
+                 pToMax = arr + i;
+        }
+    }       
+
+    int main()
+    {
+        int nums[4] = { 5, 3, 15, 6 };
+        int* ptr;
+
+        findMax(nums, 4, ptr);
+        cout << "The maximum is at address " << ptr << endl;
+        cout << "It's at position " << ptr - nums << endl;
+        cout << "Its value is " << *ptr << endl;
+    }
+
+
+The bug occured as the ptr was passed as the copy into the argument into the findMax function and thus was never truly initialized in the function, hence pointer must be passed be passed by reference for the function to access it. 
+
+Solution: changed the argument to int* &pToMax in the function parameters.
+
+c) 
+
+Fixed version of a program: (generalized version)
+
+void computeCube(int n, int* ncubed)
+    {
+        *ncubed = n * n * n;
+    }
+
+    int main()
+    {
+        int i;
+        cout << "Enter the number: ";
+        cin >> i;
+        int number = i;
+        int* ptr = &number;
+        computeCube(number, ptr);
+        cout << "Five cubed is " << *ptr << endl;
+    }
+
+Bugs:
+
+In the main() body, the declaration of the pointer was not followed by its initialization, and hence has a garbage value and does not direct the function into anywhere in particular. Initialize the pointer by using the value of the user input. Hence, the pointer's value will direct us to the address of this variable and will properly compile.
+
+d)
+
+Solution:
+
+   // return true if two C strings are equal
+    bool strequal(const char str1[], const char str2[])
+    {
+        while (*str1 != 0  &&  *str2 != 0)
+        {
+            if (*str1 != *str2)  // compare corresponding characters
+                return false;
+            str1++;            // advance to the next character
+            str2++;
+        }
+        return *str1 == *str2;   // both ended at same time?
+    }
+
+    int main()
+    {
+        char a[15] = "Chen";
+        char b[15] = "Cheng";
+
+        if (strequal(a,b))
+            cout << "They're the same person!\n";
+    }
+
+Bugs:
+
+Instead of the direct comparison between the elements of the C strings, the initial program compares the adresses of the elements and hence it will return false regardles of the contents of the strings. This can be checked by changing char b to "Chen". Hence, the program can be fixed by implementing the dereferencing to the str1 & str2 pointers, so it will now direct the program to compare the elements of the strings at the following adresses. Increment the pointers to proceed to the next value. Alternatively, use the for loop to check for each element of the string to avoid the pointers' usage.
+
+e) Function will return -1 0 -107245144 29563 0 0, since int anArray will go out of the scope during the implementation of the getPtrToArray. Since anArray is a local variable, it does not exist on the global scope and, when the assigned pointer will examine it from the null element, all the elements of the array will be lost when reaching the end of the function: the whole set of the values will be set to the garbage values. Though the f() function will replace some elements of the anArray that is filled with garbage numbers, it will produce undefined behaviour as we end up with the random values when called within the main() function.
+
+2.
+
+a) double* cat;
+b) double mouse[5];
+c) cat = mouse + 4;
+d) *cat = 25;
+e) *(mouse + 3) = 54;
+f) cat = cat - 3;
+g) cat[2] = 27;
+h) cat[0] = 42;
+i) bool b = *cat == *(cat + 1);
+j) bool d = cat == mouse;
+
+3.
+
+a) double mean(const double* scores, int numScores)
+    {
+        double tot = 0;
+        int i;
+        for (i = 0; i < numScores; i++) {
+            if (i >= 0) { // no undefined behaviour check
+            tot = *(i + scores);
+            }
+        }
+        return tot/numScores;
+    }
+
+b) const char* findTheChar(const char* str, char chr)
+    {
+        for (int k = 0; *(str + k) != 0; k++)
+            if (*(str + k) == chr)
+                return (str + k);
+
+        return nullptr;
+    }
+
+4.
+Function's output:
+3
+4
+79
+-1
+9
+22
+19
+
+Walkthrough:
+
+ int* maxwell(int* a, int* b) // compares the elements and outputs the address of a greater element
+    {
+        if (*a > *b)
+            return a;
+        else
+            return b;
+    }
+
+    void swap1(int* a, int* b)  // swaps the adresses of the parameters but does not modify them
+    {
+        int* temp = a;
+        a = b;
+        b = temp;
+    }
+
+    void swap2(int* a, int* b) // swaps the parameter values by manipulating their pointer position
+    {
+        int temp = *a;
+        *a = *b;
+        *b = temp;
+    }
+
+    int main()
+    {
+        int array[6] = { 5, 3, 4, 17, 22, 19 }; // array initialized
+
+        int* ptr = maxwell(array, &array[2]);  // sends the elements at the null & 2nd position of the array to be compared by the maxwell function, and thus initializes the pointer to the adress of the null element as 5 > 4
+        *ptr = -1;  // sets the element in the null position to -1
+        ptr += 2;  // goes to the element in the 2nd position of the array
+        ptr[1] = 9;  // sets the element in the 3rd position to 9
+        *(array+1) = 79;  // sets the element in the 1st position to 79
+
+// {-1, 79, 4, 9, 22, 19}
+
+        cout << &array[5] - ptr << endl; // ptr is at the element of at the 2nd position in the array, hence sees how many positions apart are [5] and [2]. 5 - 2 = 3, hence elements are 3 positions apart and the output will be 3
+
+        swap1(&array[0], &array[1]); // swaps the adresses of the element at the null and 1st position. hence remains {-1, 79, 4, 22, 19}
+        swap2(array, &array[2]); // swaps the values of the elements at the null and 2nd position. becomes {4, 79, -1, 9, 22, 19}
+        for (int i = 0; i < 6; i++)
+            cout << array[i] << endl; // prints out each of the 6 elements of the array in order
+    } 
+
+5. void removeS(char* str) {
+    while (*str != '\0') {
+        if (*str == 'S' || *str == 's') {
+            char* findS = str;
+            while (*findS != '\0') {
+                *findS = *(findS + 1);
+                findS++;
+                }
+        }
+        else
+            str++;
+    }
+}
+
+int main() {
+    char msg[50] = "She'll be a massless princess.";
+    removeS(msg);
+    cout << msg;  // prints   he'll be a male prince.
+}
+
