@@ -1,0 +1,159 @@
+// application file
+#define _CRT_SECURE_NO_DEPRECATE
+#include "utilities.h"
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+void beesAndFlowers(char word[MAXWORDLEN + 1], char words[MAXWORDLEN + 1], int& f, int& b); // helper function
+int playOneRound(const char words[][MAXWORDLEN + 1], int nWords, int wordnum);
+const char WORDFILENAME[] = "C:/Users/asus/Desktop/challenginggame.txt";
+const int MAXWORDS = 9000;
+
+void beesAndFlowers(char word1[MAXWORDLEN + 1], char word2[MAXWORDLEN + 1], int& numFlowers, int& numBees) {
+	numFlowers = 0; // initialize the parameters for counting
+	numBees = 0;
+	int i = 0;  // initialize the parameters for loops
+	int j = 0; 
+	int f; 
+	char mysteryWord[MAXWORDLEN + 1]; 
+	char usersWord[MAXWORDLEN + 1];
+
+	strcpy(mysteryWord, word1); // get the user input to compare
+	strcpy(usersWord, word2);
+	
+	while (mysteryWord[i] != '\0' && usersWord[i] != '\0') {  // does not reach the null byte
+		if (mysteryWord[i] == usersWord[i]) {
+			mysteryWord[i] = ' ';  // delete the characters, so they cannot be counted as bees
+			usersWord[i] = ' ';
+			numFlowers++; // +1 flower
+		}
+		i++;
+	}
+
+	while (usersWord[j] != '\0') { // does not reach the null byte
+		if (usersWord[j] != ' ') { // is not already used in a flower
+			int f = 0;
+			while (usersWord[f] != '\0')  { 
+				if (mysteryWord[f] != ' ' && mysteryWord[f] == usersWord[j]) {
+					mysteryWord[f] = ' ';  // delete the characters, so one letter cannot be counted twice as two bees
+					usersWord[j] = ' ';
+					numBees++; // +1 bee
+				}
+				f++;
+			}
+		}
+		j++;
+	}
+}
+
+int playOneRound(const char words[][MAXWORDLEN + 1], int nWords, int wordnum) {
+	char mysteryWord[MAXWORDLEN + 1];
+	int flowers;
+	int bees;
+	int count = 0;
+	strcpy(mysteryWord, words[wordnum]);  // call user input
+
+	if ((nWords <= 0) || wordnum < 0 || wordnum >= nWords) {  // check the parameters for the boundaries error
+		return -1;
+	}
+
+	for (;;) {
+		char t[200]; // array large enough needed
+		int error = 0;
+		cout << "Trial word: " << endl;
+		cin.getline(t, 200);  // get user input
+		if ((strlen(t) < 0) && (strlen(t) < MINWORDLEN || strlen(t) > MAXWORDLEN)) { // checks that input is 4-6 letters long
+			cout << "Your trial word must be a word of 4 to 6 lower case letters." << endl;
+			continue;
+		}
+		for (int i = 0; t[i] != '\0'; i++) {
+			if (!islower(t[i]) || !isalpha(t[i])) {  // checks that input is lower case within boundaries
+				cout << "Your trial word must be a word of 4 to 6 lower case letters." << endl;
+				error = -1;
+			}
+			if (error == -1) { // break out of the loop with the wrong input
+				break;
+			}
+		}
+		if (error == -1) {
+			continue;
+		}
+		int sameLetters = 0;  // to see the similarities
+		int j;
+		j = 0;
+		while (j < nWords) {
+			if (strcmp(words[j], t) == 0) {
+				sameLetters++;
+			}
+			j++;
+		}
+		j = 0; // reinitialize to see if the program reaches this point
+		if (sameLetters == 0 || j != 0) {
+			cout << "I don't know that word." << endl;  // input word is not present on the word list
+			continue;
+		}
+		if (strcmp(t, mysteryWord) == 0) {
+			count++;
+			break;
+		}
+		beesAndFlowers(t, mysteryWord, flowers, bees);  // calls function to see how many f/b are in the word
+		cout << "Flowers: " << flowers << ", Bees: " << bees << endl;
+		count++;
+	}
+	return count; // num of tries sum
+}
+
+int main()
+{
+	cout.setf(ios::fixed);
+	cout.precision(2);
+	char str[MAXWORDS][MAXWORDLEN + 1];
+	int n = getWords(str, MAXWORDS, WORDFILENAME);
+	int round; 
+
+	if (n < 1) {  // no words in file
+		cout << "No words were loaded, so i can't play the game." << endl;
+		return 0;
+	}
+	cout << "How many rounds would you like to play?" << endl;
+	cin >> round;
+	cin.ignore(10000, '\n'); // skips to the newline
+	cout << endl;
+	if (round < 1 || round <= 0) {  // negative/0/non-int num of rounds
+		cout << "The number of rounds must be positive." << endl;
+		return -1;
+	}
+	int i = 1;
+	if (n != 0) { // n is greater than 0
+		int max = 1;
+		int min = 0;
+		double sum = 0;
+		while (i <= round) { // loop through every round
+			int letters = randInt(0, n - 1);  // generate num of letters from 4 to 6
+			cout << "Round " << i << endl;
+			// cerr << "SEE STR" << str[0] << " " << str[1] << endl;
+			cout << "The mystery word is " << strlen(str[letters]) << " letters long." << endl;
+			int numOfTries = playOneRound(str, n, letters);  // output count
+			sum += numOfTries;  // see how many tries there were total in all rounds
+			if (numOfTries > max) {
+				max = numOfTries;  // new max
+			}
+			if (min == 0) {
+				min = numOfTries;   // new min
+			}
+			else if (numOfTries < min) {
+				min = numOfTries;
+			}
+			if (numOfTries == 1) {
+				cout << "You got it in 1 try." << endl;  // different syntax, thus different loop
+			}
+			else {
+				cout << "You got it in " << numOfTries << " tries." << endl;
+			}
+			cout << "Average: " << ((sum) / i) << ", minimum: " << min << ", maximum: " << max << endl;
+			i++;  // continue until run out of the rounds
+		}
+	}
+}
+
